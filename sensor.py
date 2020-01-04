@@ -1,19 +1,34 @@
-import asyncio
-import aiohttp
-import async_timeout
 import json
 import requests
+import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 
 from datetime import timedelta
 from datetime import date
+
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
+from homeassistant.components.sensor import PLATFORM_SCHEMA
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
-    solax_cloud = SolaxCloud(hass, 'your-username', 'your-password', 'your-inverter-serial', 'your-inverter-ssid')
-    add_devices([SolarPowerSensor(hass, solax_cloud), GridPowerSensor(hass, solax_cloud), InverterTemperatureSensor(hass, solax_cloud), InverterTotalYieldSensor(hass, solax_cloud), InverterDailyYieldSensor(hass, solax_cloud)], True)
+CONF_USERNAME = "username"
+CONF_PASSWORD = "password"
+CONF_INVERTER_SERIAL = "inverter_serial"
+CONF_INVERTER_NUMBER = "inverter_number"
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Required(CONF_INVERTER_SERIAL): cv.string,
+        vol.Required(CONF_INVERTER_NUMBER): cv.string,
+    }
+)
+
+def setup_platform(hass, config, add_entities, discovery_info=None):
+    solax_cloud = SolaxCloud(hass, config[CONF_USERNAME], config[CONF_PASSWORD], config[CONF_INVERTER_SERIAL], config[CONF_INVERTER_NUMBER])
+    add_entities([SolarPowerSensor(hass, solax_cloud), GridPowerSensor(hass, solax_cloud), InverterTemperatureSensor(hass, solax_cloud), InverterTotalYieldSensor(hass, solax_cloud), InverterDailyYieldSensor(hass, solax_cloud)], True)
 
 class SolaxCloud:
     def __init__(self, hass, username, password, inverter_serial, inverter_ssid):
@@ -37,7 +52,6 @@ class SolaxCloud:
         except requests.exceptions.ConnectionError:
             return resp
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def get_data(self):
         resp = None
         try:
@@ -74,6 +88,7 @@ class InverterTotalYieldSensor(Entity):
     def icon(self):
         return 'mdi:gauge-full'
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         self.solax_cloud.get_data()
 
@@ -100,6 +115,7 @@ class InverterDailyYieldSensor(Entity):
     def icon(self):
         return 'mdi:gauge-low'
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         self.solax_cloud.get_data()
 
@@ -126,6 +142,7 @@ class InverterTemperatureSensor(Entity):
     def icon(self):
         return 'mdi:thermometer'
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         self.solax_cloud.get_data()
 
@@ -153,6 +170,7 @@ class SolarPowerSensor(Entity):
     def icon(self):
         return 'mdi:gauge'
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         self.solax_cloud.get_data()
 
@@ -180,5 +198,6 @@ class GridPowerSensor(Entity):
     def icon(self):
         return 'mdi:gauge'
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         self.solax_cloud.get_data()
