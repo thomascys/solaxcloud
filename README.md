@@ -8,7 +8,7 @@
     - platform: solaxcloud
       username: USERNAME
       password: PASSWORD
-      inverter_serial: SERIAL
-      inverter_number: NUMBER
+      site_id: SITE ID
     ```
-- Verify that the custom entities are available in home assistant
+- To obtain your site id. Login to solaxcloud.com and click on Sites in the left menu. Inspect the Site-name with your browser developer tools. You should see something like "showAnalysis('xxxxxxxxxxxxxx','Home')" in the html code.
+- Verify that the custom entities are available in home assistant.
