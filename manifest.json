@@ -1,6 +1,7 @@
 {
     "domain": "solaxcloud",
     "name": "Solax cloud integration",
+    "version": "1.0.0",
     "documentation": "https://www.solaxcloud.com",
     "dependencies": [],
     "codeowners": [],
